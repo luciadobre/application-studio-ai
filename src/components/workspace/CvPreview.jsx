@@ -4,6 +4,9 @@ import TemplateBold from "../templates/TemplateBold";
 import TemplateClassic from "../templates/TemplateClassic";
 import TemplateMinimal from "../templates/TemplateMinimal";
 
+// A4 at 96 dpi
+const A4_HEIGHT_PX = 1123;
+
 const cvTemplates = {
   minimal: {
     label: "Minimal",
@@ -25,22 +28,17 @@ const cvTemplates = {
   },
 };
 
-function thumbnailButtonClass(isActive) {
-  const activeClass = "border-app-accent ring-2 ring-app-accent/20";
-  const idleClass = "border-app-line hover:border-app-muted";
-
-  return [
-    "w-28 rounded-field border bg-app-surface p-2 text-left transition",
-    isActive ? activeClass : idleClass,
-  ].join(" ");
-}
-
 function TemplateThumbnail({ id, template, activeTemplate, onSelect }) {
+  const isActive = activeTemplate === id;
   return (
     <button
       type="button"
       onClick={() => onSelect(id)}
-      className={thumbnailButtonClass(activeTemplate === id)}
+      className={`w-28 rounded-field border bg-app-surface p-2 text-left transition ${
+        isActive
+          ? "border-app-accent ring-2 ring-app-accent/20"
+          : "border-app-line hover:border-app-muted"
+      }`}
     >
       <div className={`h-32 rounded-sm border ${template.thumbnailClass}`}>
         <div className={`mx-3 mt-3 h-3 rounded-sm ${template.accentClass}`} />
@@ -71,11 +69,10 @@ export default function CvPreview({ data }) {
   useLayoutEffect(() => {
     const frame = requestAnimationFrame(() => {
       const height = contentRef.current?.getBoundingClientRect().height || 0;
-      setOverflowsPage(height > 1123);
+      setOverflowsPage(height > A4_HEIGHT_PX);
     });
-
     return () => cancelAnimationFrame(frame);
-  });
+  }, [data, activeTemplate]);
 
   return (
     <div className="space-y-5">

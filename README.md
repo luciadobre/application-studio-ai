@@ -1,16 +1,34 @@
-# React + Vite
+# Application Studio AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A job application generator powered by Gemini AI. Paste a job description, get a tailored CV, cover letter, and answers to application questions — then refine everything through a chat interface.
 
-Currently, two official plugins are available:
+## How it works
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. **Profile setup** — paste your CV, write a short bio, and list your skills
+2. **Generate** — paste a job posting and let the AI produce tailored documents
+3. **Workspace** — review and edit each document, or chat with the AI to refine them
+4. **Download** — export any document as a text file
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + Vite
+- Tailwind CSS
+- Gemini 2.5 Flash (via REST API)
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+```
+
+Create a `.env` file at the project root:
+
+```
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Get a free API key at [aistudio.google.com](https://aistudio.google.com/app/apikey).
+
+```bash
+npm run dev
+```

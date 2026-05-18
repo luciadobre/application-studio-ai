@@ -19,38 +19,21 @@ import {
   readCvResponse,
 } from "../utils/workspaceData";
 
-function getPromptForTab({ tab, tabState, feedback }) {
-  const promptByTabId = {
-    cv: () =>
-      buildCvPrompt({
-        content: tabState.content,
-        cvData: tabState.cvData,
-        feedback,
-      }),
-  };
+const tabConfig = {
+  cv: {
+    buildPrompt: ({ tabState, feedback }) =>
+      buildCvPrompt({ content: tabState.content, cvData: tabState.cvData, feedback }),
+    readResponse: (response) => readCvResponse(response),
+    aiOptions: { json: true },
+  },
+};
 
-  const buildPrompt = promptByTabId[tab.id] || buildDocumentPrompt;
-  return buildPrompt({ content: tabState.content, feedback });
-}
-
-function getResponseForTab({ tab, response }) {
-  const responseByTabId = {
-    cv: () => readCvResponse(response),
-    default: () => ({ content: response }),
-  };
-
-  const readResponse = responseByTabId[tab.id] || responseByTabId.default;
-  return readResponse();
-}
-
-function getAIOptionsForTab(tab) {
-  const optionsByTabId = {
-    cv: { json: true },
-    default: {},
-  };
-
-  return optionsByTabId[tab.id] || optionsByTabId.default;
-}
+const defaultTabConfig = {
+  buildPrompt: ({ tabState, feedback }) =>
+    buildDocumentPrompt({ content: tabState.content, feedback }),
+  readResponse: (response) => ({ content: response }),
+  aiOptions: {},
+};
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
@@ -74,22 +57,14 @@ export default function WorkspacePage() {
   const updateActiveTab = (updates) => {
     setTabContents((prev) => ({
       ...prev,
-      [activeTabId]: {
-        ...prev[activeTabId],
-        ...updates,
-      },
+      [activeTabId]: { ...prev[activeTabId], ...updates },
     }));
-  };
-
-  const handleContentChange = (content) => {
-    updateActiveTab({ content });
   };
 
   const handleDownload = () => {
     const blob = new Blob([activeTabState.content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
-
     anchor.href = url;
     anchor.download = `${getTabLabel(activeTab)}.txt`;
     document.body.appendChild(anchor);
@@ -100,37 +75,30 @@ export default function WorkspacePage() {
 
   const handleSendMessage = async (event) => {
     event.preventDefault();
-
     if (!chatInput.trim() || chatLoading) return;
 
     setError("");
     setChatLoading(true);
 
     try {
-      const prompt = getPromptForTab({
-        tab: activeTab,
-        tabState: activeTabState,
-        feedback: chatInput,
-      });
-      const response = await callAI(prompt, getAIOptionsForTab(activeTab));
-      const updates = getResponseForTab({ tab: activeTab, response });
-      const nextContent = updates.content;
+      const config = tabConfig[activeTab.id] || defaultTabConfig;
+      const prompt = config.buildPrompt({ tabState: activeTabState, feedback: chatInput });
+      const response = await callAI(prompt, config.aiOptions);
+      const updates = config.readResponse(response);
 
       updateActiveTab({
-        content: nextContent,
+        content: updates.content,
         cvData: updates.cvData || activeTabState.cvData || emptyCvData,
         messages: [
           ...activeTabState.messages,
           { role: "user", content: chatInput },
-          { role: "assistant", content: nextContent },
+          { role: "assistant", content: updates.content },
         ],
       });
       setChatInput("");
     } catch (err) {
-      setError(
-        err.message || "Failed to process your request. Please try again.",
-      );
-      console.error("Error:", err);
+      setError(err.message || "Failed to process your request. Please try again.");
+      console.error(err);
     } finally {
       setChatLoading(false);
     }
@@ -144,15 +112,13 @@ export default function WorkspacePage() {
         activeTabId={activeTabId}
         onSelectTab={setActiveTabId}
       />
-
       <div className="p-8">
         <DocumentPanel
           tab={activeTab}
           tabState={activeTabState}
-          onContentChange={handleContentChange}
+          onContentChange={(content) => updateActiveTab({ content })}
           onDownload={handleDownload}
         />
-
         <ErrorBanner message={error} />
         <ChatComposer
           value={chatInput}

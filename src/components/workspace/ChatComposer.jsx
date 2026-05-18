@@ -1,15 +1,6 @@
 import { ui } from "../../styles/ui";
 
-function submitButtonClass(disabled) {
-  return [ui.primaryButton, disabled ? "opacity-80" : ""].join(" ");
-}
-
-export default function ChatComposer({
-  value,
-  loading,
-  onChange,
-  onSubmit,
-}) {
+export default function ChatComposer({ value, loading, onChange, onSubmit }) {
   const disabled = loading || !value.trim();
 
   return (
@@ -22,7 +13,11 @@ export default function ChatComposer({
         className={`flex-1 ${ui.field}`}
         placeholder="Ask AI to refine or update this document..."
       />
-      <button type="submit" disabled={disabled} className={submitButtonClass(disabled)}>
+      <button
+        type="submit"
+        disabled={disabled}
+        className={`${ui.primaryButton} ${disabled ? "opacity-80" : ""}`}
+      >
         {loading ? "..." : "Send"}
       </button>
     </form>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppIntro from "../components/app/AppIntro";
 import ApplicationForm from "../components/app/ApplicationForm";
@@ -12,9 +12,8 @@ export default function AppPage() {
   const [jobDescription, setJobDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const redirectToSetup = useCallback(() => navigate("/setup"), [navigate]);
   const userProfile = useRequiredUserProfile({
-    onMissingProfile: redirectToSetup,
+    onMissingProfile: () => navigate("/setup"),
   });
 
   const handleSubmit = async (event) => {
@@ -27,7 +26,8 @@ export default function AppPage() {
       navigate("/workspace");
     } catch (err) {
       setError(getApplicationErrorMessage(err));
-      console.error("Error:", err);
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
